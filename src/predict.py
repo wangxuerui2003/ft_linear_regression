@@ -6,12 +6,12 @@ PARAMS_FILEPATH = "params.txt"
 
 try:
     params = np.loadtxt(PARAMS_FILEPATH, dtype=float)
+    theta0 = params[0]
+    theta1 = params[1]
 except FileNotFoundError:
-    print("Please train the params first!", file=sys.stderr)
-    exit(1)
+    theta0 = 0
+    theta1 = 0
 
-theta0 = params[0]
-theta1 = params[1]
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
