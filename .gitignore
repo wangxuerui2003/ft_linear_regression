@@ -1,0 +1,11 @@
+# Ignore 42 subject pdf
+ft_linear_regression.pdf
+
+# python
+.*venv/
+*venv/
+__pycache__/
+
+# temp files (model params)
+params.txt
+
