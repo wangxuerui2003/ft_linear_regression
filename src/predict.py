@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+from utils.formulas import estimate_price
 
 PARAMS_FILEPATH = "params.txt"
 
@@ -12,11 +13,6 @@ except FileNotFoundError:
 theta0 = params[0]
 theta1 = params[1]
 
-
-def estimate_price(mileage):
-    return theta1 * mileage + theta0
-
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python src/predict.py <mileage>", file=sys.stderr)
@@ -26,4 +22,4 @@ if __name__ == "__main__":
     except ValueError:
         print("Invalid mileage value.", file=sys.stderr)
         exit(1)
-    print(round(estimate_price(input)))
+    print("Predicted price:", round(estimate_price(input, theta0, theta1)))

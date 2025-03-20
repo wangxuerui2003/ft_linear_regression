@@ -3,6 +3,7 @@ import argparse
 import matplotlib.pyplot as plt
 from utils.load_data import load_data_csv
 from utils.visualization import fit_plot
+from utils.formulas import r_squared, dJ_dw, dJ_db, mse
 
 
 PARAMS_FILEPATH = "params.txt"
@@ -40,34 +41,6 @@ prices = (prices_orig - np.mean(prices_orig)) / np.std(prices_orig)
 m = df.shape[0]
 
 
-def estimate_price(mileage):
-    """
-    The linear function for predicting price with mileage.
-    mileage can be single value or a numpy array (vectorized).
-    """
-    return w * mileage + b
-
-
-def dJ_dw():
-    """Partial derivative of weight against the MSE cost function (J)"""
-    return np.mean((estimate_price(mileages) - prices) * mileages)
-
-
-def dJ_db():
-    """Partial derivative of bias against the MSE cost function (J)"""
-    return np.mean(estimate_price(mileages) - prices)
-
-
-def mse():
-    return (1 / 2) * np.mean((estimate_price(mileages) - prices) ** 2)
-
-
-def r_squared():
-    SS_res = np.sum((prices - estimate_price(mileages)) ** 2)
-    SS_tot = np.sum((prices - np.mean(prices)) ** 2)
-    return 1 - (SS_res / SS_tot)
-
-
 def train():
     global w, b
 
@@ -77,11 +50,11 @@ def train():
 
     for e in range(max_epochs):
         if verbose:
-            print(f"epoch: {e + 1}, loss (mse): {mse()}")
+            print(f"epoch: {e + 1}, loss (mse): {mse(mileages, prices, w, b)}")
 
         # gradient descent
-        dw = dJ_dw()
-        db = dJ_db()
+        dw = dJ_dw(mileages, prices, w, b)
+        db = dJ_db(mileages, prices, w, b)
         w -= eta * dw
         b -= eta * db
 
@@ -152,7 +125,7 @@ if __name__ == "__main__":
     parse_args()
 
     train()
-    print(f"Accuracy (R^2): {r_squared()}")
+    print(f"Accuracy (R^2): {r_squared(mileages, prices, w, b)}")
 
     # save theta0 and theta1
     w_orig, b_orig = denormalize_params()
