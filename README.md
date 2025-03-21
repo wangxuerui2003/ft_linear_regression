@@ -21,8 +21,11 @@ $ python src/evaluate.py
 
 ```
 
+## Linear Regression
+
+
 ## TODO
-- [ ] test with more online datasets (params for x and y column name)
+- [x] test with more online datasets (params for x and y column name)
 - [ ] math derivation in readme
 - [x] calculate precision program (bonus)
-- [ ] add more params for training.py for epochs, learning rate, etc.
+- [x] add more params for training.py for epochs, learning rate, etc.
