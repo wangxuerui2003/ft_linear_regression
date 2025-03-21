@@ -3,16 +3,22 @@ import numpy as np
 from utils.load_data import load_data_csv
 
 
-def fit_plot(w, b):
-    data = load_data_csv()
+def fit_plot(
+    w,
+    b,
+    dataset_path: str = "data.csv",
+    x_col_name: str = "km",
+    y_col_name: str = "price",
+):
+    data = load_data_csv(dataset_path)
 
-    x = data["km"]
-    y = data["price"]
+    x = data[x_col_name]
+    y = data[y_col_name]
 
-    fig, ax = plt.subplots()
-    ax.set_xlabel("Mileage (km)")
-    ax.set_ylabel("Price")
-    ax.set_title("Mileage to Price Scatter plot")
+    _, ax = plt.subplots()
+    ax.set_xlabel(x_col_name)
+    ax.set_ylabel(y_col_name)
+    ax.set_title(f"{x_col_name} to {y_col_name} Linear Regression")
     ax.scatter(x, y)
 
     # line = np.linspace(x.min(), x.max(), 100)

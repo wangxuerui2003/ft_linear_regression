@@ -1,11 +1,8 @@
 import pandas as pd
 
 
-DATASET_PATH = "data.csv"
-
-
-def load_data_csv():
+def load_data_csv(path: str = "data.csv"):
     try:
-        return pd.read_csv(DATASET_PATH)
+        return pd.read_csv(path)
     except FileNotFoundError:
-        return pd.DataFrame(columns=["km", "price"])
+        return pd.DataFrame()
