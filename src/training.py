@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-import sys
 from utils.load_data import load_data_csv
-from utils.visualization import fit_plot
+from utils.visualization import visualize_regression
 from utils.formulas import r_squared, dJ_dw, dJ_db, mse
 
 
@@ -11,7 +10,6 @@ PARAMS_FILEPATH = "params.txt"
 
 dataset_path = "data.csv"
 
-x_col_name = "km"
 y_col_name = "price"
 
 # cli variables (optional)
@@ -29,65 +27,57 @@ early_stop = False
 # dw and db smaller than epsilon then early stop (if early stopping on)
 epsilon = 0.0001
 
-# weight/slope/theta1
-w = 0
-
-# bias/y-intercept/theta0
-b = 0
-
 
 def load_dataset():
-    global df, x_orig, y_orig, x, y
+    global df, x_orig, y_orig, x, y, ws, b, feature_names, target_name
     # dataset
     df = load_data_csv(dataset_path)
 
+    for col in df.columns:
+        if df[col].dtype == "object":  # Check if the column is of object type (string)
+            df[col] = df[col].map({"Yes": 1, "No": 0})
+
+    feature_names = [col for col in df.columns if col != y_col_name]
+    target_name = y_col_name
+
     # numpy array of features and targets
-    x_orig = df[x_col_name].to_numpy()
     y_orig = df[y_col_name].to_numpy()
+    x_orig = df.drop(columns=[y_col_name]).to_numpy()
 
     # normalization
-    x = (x_orig - np.mean(x_orig)) / np.std(x_orig)
+    x = x_orig.copy().astype("float64")
+    for i in range(x_orig.shape[1]):
+        x[:, i] = (x_orig[:, i] - np.mean(x_orig[:, i])) / np.std(x_orig[:, i])
     y = (y_orig - np.mean(y_orig)) / np.std(y_orig)
+
+    # weight/slope/theta1
+    ws = np.zeros(x.shape[1])
+
+    # bias/y-intercept/theta0
+    b = 0
 
 
 def train():
-    global w, b
+    global ws, b
 
-    if visual:
-        plt.figure(figsize=(8, 6))
-        plt.scatter(x_orig, y_orig, label="Data Points")
+    # if visual:
+    #     plt.figure(figsize=(8, 6))
+    #     plt.scatter(x_orig, y_orig, label="Data Points")
 
     for e in range(max_epochs):
         if verbose:
-            print(f"epoch: {e + 1}, loss (mse): {mse(x, y, w, b)}")
+            print(f"epoch: {e + 1}, loss (mse): {mse(x, y, ws, b)}")
 
         # gradient descent
-        dw = dJ_dw(x, y, w, b)
-        db = dJ_db(x, y, w, b)
-        w -= eta * dw
+        dw = dJ_dw(x, y, ws, b)
+        db = dJ_db(x, y, ws, b)
+        ws -= eta * dw
         b -= eta * db
 
         # early stopping
-        if early_stop and (abs(dw) < epsilon and abs(db) < epsilon):
+        if early_stop and (abs(max(dw)) < epsilon and abs(db) < epsilon):
             print("Early stopped at epoch", e + 1)
             break
-
-        if visual:
-            w_orig, b_orig = denormalize_params()
-            plt.plot(
-                x_orig,
-                w_orig * x_orig + b_orig,
-                color="red",
-                label=f"Epoch {e + 1}",
-            )
-            plt.title("Gradient Descent Visualization")
-            plt.xlabel("Mileage")
-            plt.ylabel("Price")
-            plt.legend()
-            plt.pause(0.1)
-            # Clear the previous line (except for the first epoch)
-            if e < max_epochs - 1:
-                plt.gca().lines[-1].remove()
 
     if visual:
         plt.show()
@@ -95,14 +85,9 @@ def train():
 
 def denormalize_params():
     # de-normalize w and b
-    w_orig = w * np.std(y_orig) / np.std(x_orig)
-    b_orig = b * np.std(y_orig) - np.mean(x_orig) * w_orig + np.mean(y_orig)
+    w_orig = ws * np.std(y_orig) / np.std(x_orig, axis=0)
+    b_orig = b * np.std(y_orig) - np.mean(x_orig, axis=0) @ w_orig + np.mean(y_orig)
     return w_orig, b_orig
-
-
-def save_params(theta0, theta1):
-    params = np.array([theta0, theta1])
-    np.savetxt(PARAMS_FILEPATH, params, fmt="%f")
 
 
 def parse_args():
@@ -165,9 +150,6 @@ def parse_args():
     if args["dataset_path"]:
         global dataset_path
         dataset_path = args["dataset_path"]
-    if args["x_col_name"]:
-        global x_col_name
-        x_col_name = args["x_col_name"]
     if args["y_col_name"]:
         global y_col_name
         y_col_name = args["y_col_name"]
@@ -194,11 +176,11 @@ if __name__ == "__main__":
     load_dataset()
 
     train()
-    print(f"Accuracy (R^2): {r_squared(x, y, w, b)}")
+    print(f"Accuracy (R^2): {r_squared(x, y, ws, b)}")
 
-    # save theta0 and theta1
     w_orig, b_orig = denormalize_params()
-    save_params(b_orig, w_orig)
+    print("ws:", w_orig)
+    print("b:", b_orig)
 
-    if not visual:
-        fit_plot(w_orig, b_orig, dataset_path, x_col_name, y_col_name)
+    if visual and len(ws) <= 2:
+        visualize_regression(x, y, ws, b, feature_names, target_name)

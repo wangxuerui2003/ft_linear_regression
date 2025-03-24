@@ -26,6 +26,6 @@ $ python src/evaluate.py
 
 ## TODO
 - [x] test with more online datasets (params for x and y column name)
-- [ ] math derivation in readme
 - [x] calculate precision program (bonus)
 - [x] add more params for training.py for epochs, learning rate, etc.
+- [x] upgrade the model to support multiple features (put into another folder)
